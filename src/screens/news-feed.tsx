@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
 import { FlatList, View } from 'react-native';
-import { ActivityIndicator, Chip, Searchbar, Text } from 'react-native-paper';
+import {
+  ActivityIndicator,
+  Chip,
+  DefaultTheme,
+  Searchbar,
+  Text,
+} from 'react-native-paper';
 import { isError, useQuery } from 'react-query';
 
 import { NewsResponse } from '~/@types/response';
@@ -14,13 +20,20 @@ const CATEGORIES = [
   'science',
   'sports',
   'technology',
-];
+] as const;
 
 function NewsFeed() {
   const [query, setQuery] = useState('');
-  const { data, isLoading, isError } = useQuery(query, async () => {
+  const [category, setSelectedCategory] = useState<
+    typeof CATEGORIES[number] | undefined
+  >();
+  const queryKey = query + (category != undefined ? category : '');
+  const { data, isLoading, isError } = useQuery(queryKey, async () => {
     return await (
-      await getFetcher().get<NewsResponse>(`sources?language=en&q=${query}`)
+      await getFetcher().get<NewsResponse>(
+        `sources?language=en&q=${query}` +
+          (category != undefined ? `&category=${category}` : '')
+      )
     ).data;
   });
 
@@ -35,8 +48,8 @@ function NewsFeed() {
   const renderData = () => {
     return (
       <FlatList
-        data={data?.articles}
-        renderItem={({ item }) => <Text>{item.title}</Text>}
+        data={data?.sources}
+        renderItem={({ item }) => <Text>{item.name}</Text>}
       />
     );
   };
@@ -53,12 +66,18 @@ function NewsFeed() {
         }}
       >
         {CATEGORIES.map((item) => (
-          <Chip style={{ margin: 5 }} mode="outlined">
+          <Chip
+            selected={item === category}
+            style={{ margin: 5 }}
+            mode="outlined"
+            onPress={() => setSelectedCategory(item)}
+            selectedColor={DefaultTheme.colors.primary}
+          >
             {item}
           </Chip>
         ))}
       </View>
-      <Text>{`code: ${data?.status}, result:${data?.totalResults}`}</Text>
+      <Text>{`code: ${data?.status}, result:${data?.sources.length}`}</Text>
       {isLoading && renderLoading()}
       {isError && renderError()}
       {data != undefined && renderData()}

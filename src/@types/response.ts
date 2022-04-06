@@ -1,19 +1,14 @@
 export type NewsResponseItem = {
-  author: string;
-  title: string;
+  id: string;
+  name: string;
   description: string;
   url: string;
-  urlToImage?: string;
-  publishedAt: string;
-  content: string;
-  source: {
-    id: string;
-    name: string;
-  };
+  category: string;
+  language: string;
+  country: string;
 };
 
 export type NewsResponse = {
   status: string;
-  totalResults: number;
-  articles: NewsResponseItem[];
+  sources: NewsResponseItem[];
 };
