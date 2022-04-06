@@ -9,6 +9,10 @@ import NewsFeed from '../screens/news-feed';
 
 const Stack = createNativeStackNavigator();
 
+function noop() {
+  return null;
+}
+
 function ItemScreen() {
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
@@ -19,7 +23,12 @@ function ItemScreen() {
 
 function Router() {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator
+      screenOptions={{
+        header: noop,
+        headerShown: false,
+      }}
+    >
       <Stack.Screen name={Routes.NEWS_FEED} component={NewsFeed} />
       <Stack.Screen name={Routes.NEWS_ITEM} component={ItemScreen} />
     </Stack.Navigator>
