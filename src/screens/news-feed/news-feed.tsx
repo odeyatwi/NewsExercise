@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FlatList, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import {
   ActivityIndicator,
   Chip,
@@ -35,39 +35,42 @@ function NewsFeed() {
       const result = await getFetcher().get<SourcesResponse>(
         `sources?category=${category}`
       );
-      console.log(
-        'parse................',
-        result?.data?.sources.map((item) => item.id)
-      );
-      return result?.data?.sources.map((item) => item.id).join(',');
+      return result?.data?.sources
+        .map((item) => item.id)
+        .slice(0, 20)
+        .join(',');
     },
     { enabled: category != null }
   );
 
-  if (isError || isLoading) {
+  const renderError = () => {
     return (
-      <View style={{ flex: 1 }}>
-        {isLoading ? <ActivityIndicator /> : <Text>SOMETHING WENT WRONG</Text>}
+      <View style={styles.fullScreenCenter}>
+        <Text>SOMETHING WENT WRONG</Text>
       </View>
     );
-  }
+  };
+
+  const renderLoading = () => {
+    return (
+      <View style={styles.fullScreenCenter}>
+        <ActivityIndicator />
+      </View>
+    );
+  };
+
+  const renderData = () => {
+    return <Result query={query} sources={data} />;
+  };
 
   return (
     <View style={{ flex: 1 }}>
       <Searchbar placeholder="Search" onChangeText={setQuery} value={query} />
-      <View
-        style={{
-          width: '90%',
-          flexDirection: 'row',
-          justifyContent: 'space-around',
-          flexWrap: 'wrap',
-          margin: 10,
-        }}
-      >
+      <View style={styles.mainContainer}>
         {CATEGORIES.map((item) => (
           <Chip
             selected={item === category}
-            style={{ margin: 5 }}
+            style={styles.chip}
             mode="outlined"
             onPress={() => setSelectedCategory(item)}
             selectedColor={DefaultTheme.colors.primary}
@@ -75,11 +78,34 @@ function NewsFeed() {
             {item}
           </Chip>
         ))}
-        <Chip onPress={() => setSelectedCategory(undefined)}>CLEAR</Chip>
+        <Chip
+          style={styles.chip}
+          onPress={() => setSelectedCategory(undefined)}
+        >
+          CLEAR
+        </Chip>
       </View>
-      <Result {...{ query, sources: data }} />
+      {isLoading && renderLoading()}
+      {isError && renderError()}
+      {(data != undefined || category == null) && renderData()}
     </View>
   );
 }
 
 export default NewsFeed;
+
+const styles = StyleSheet.create({
+  fullScreenCenter: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mainContainer: {
+    width: '90%',
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    flexWrap: 'wrap',
+    margin: 10,
+  },
+  chip: { margin: 5 },
+});

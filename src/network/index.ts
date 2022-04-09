@@ -13,6 +13,11 @@ $fetcher.interceptors.request.use(function success(request) {
   return request;
 });
 
+$fetcher.interceptors.response.use(function success(response) {
+  console.log('RESPONSE', response.data, response.status, response.headers);
+  return response;
+});
+
 function getFetcher() {
   return $fetcher;
 }
