@@ -88,7 +88,7 @@ function Result({ query, sources }: IProps) {
     { enabled: query != '' || sources != undefined }
   );
 
-  if (isError || isLoading) {
+  if (isError || isLoading || (query === '' && sources == undefined)) {
     return (
       <View style={styles.fullScreenCenter}>
         {isLoading ? (
