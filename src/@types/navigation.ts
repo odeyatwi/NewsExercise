@@ -7,7 +7,14 @@ export enum Routes {
 
 type RootNavigation = {
   [Routes.NEWS_FEED]: undefined;
-  [Routes.NEWS_ITEM]: undefined;
+  [Routes.NEWS_ITEM]: {
+    title: string;
+    author: string | null;
+    publishDate: string;
+    description: string;
+    image: string | null;
+    content: string;
+  };
 };
 
 export type RootNavigationProps = NavigationProp<RootNavigation>;

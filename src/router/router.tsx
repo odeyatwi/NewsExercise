@@ -1,24 +1,15 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { View } from 'react-native';
-import { Text } from 'react-native-paper';
 
 import { Routes } from '../@types/navigation';
 
 import NewsFeed from '../screens/news-feed/news-feed';
+import ItemScreen from '../screens/news-item/news-item';
 
 const Stack = createNativeStackNavigator();
 
 function noop() {
   return null;
-}
-
-function ItemScreen() {
-  return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-      <Text>HII</Text>
-    </View>
-  );
 }
 
 function Router() {

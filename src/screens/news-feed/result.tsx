@@ -3,15 +3,19 @@ import { FlatList, View, Image, StyleSheet } from 'react-native';
 import {
   ActivityIndicator,
   Avatar,
-  Surface,
+  Card,
   Text,
   Title,
   useTheme,
 } from 'react-native-paper';
+import { useNavigation } from '@react-navigation/native';
 import { useQuery } from 'react-query';
+
 import { NewsResponse } from '~/@types/response';
+
 import { truncate } from '../../utils';
 import getFetcher from '../../network';
+import { RootNavigationProps, Routes } from '../../@types/navigation';
 
 interface ItemProps {
   title: string;
@@ -23,11 +27,15 @@ interface ItemProps {
 }
 
 function Item(item: ItemProps) {
+  const navigation = useNavigation<RootNavigationProps>();
   const { title, publishDate, image, description } = item;
-  const theme = useTheme();
   const [imageError, setImageError] = useState(image == null);
   return (
-    <Surface style={styles.item}>
+    <Card
+      key={title}
+      style={styles.item}
+      onPress={() => navigation.navigate(Routes.NEWS_ITEM, item)}
+    >
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         {image != null && !imageError ? (
           <Avatar.Image
@@ -43,7 +51,7 @@ function Item(item: ItemProps) {
           <Text>{truncate(description, 80)}</Text>
         </View>
       </View>
-    </Surface>
+    </Card>
   );
 }
 
