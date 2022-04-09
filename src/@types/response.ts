@@ -17,14 +17,14 @@ export type SourcesResponse = {
 
 export type NewsResponseItem = {
   source: {
-    id: string;
+    id: string | null;
     name: string;
   };
-  author: string;
+  author: string | null;
   title: string;
   description: string;
   url: string;
-  urlToImage: string;
+  urlToImage: string | null;
   publishedAt: string;
   content: string;
 };

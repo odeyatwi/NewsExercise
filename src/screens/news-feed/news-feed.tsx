@@ -9,8 +9,9 @@ import {
 } from 'react-native-paper';
 import { isError, useQuery } from 'react-query';
 
-import { NewsResponse } from '~/@types/response';
-import getFetcher from '../network';
+import { SourcesResponse } from '~/@types/response';
+import getFetcher from '../../network';
+import Result from './result';
 
 const CATEGORIES = [
   'business',
@@ -28,31 +29,29 @@ function NewsFeed() {
     typeof CATEGORIES[number] | undefined
   >();
   const queryKey = query + (category != undefined ? category : '');
-  const { data, isLoading, isError } = useQuery(queryKey, async () => {
-    return await (
-      await getFetcher().get<NewsResponse>(
-        `sources?language=en&q=${query}` +
-          (category != undefined ? `&category=${category}` : '')
-      )
-    ).data;
-  });
+  const { data, isLoading, isError } = useQuery(
+    queryKey,
+    async () => {
+      const result = await getFetcher().get<SourcesResponse>(
+        `sources?category=${category}`
+      );
+      console.log(
+        'parse................',
+        result?.data?.sources.map((item) => item.id)
+      );
+      return result?.data?.sources.map((item) => item.id).join(',');
+    },
+    { enabled: category != null }
+  );
 
-  const renderError = () => {
-    return <View></View>;
-  };
-
-  const renderLoading = () => {
-    return <ActivityIndicator />;
-  };
-
-  const renderData = () => {
+  if (isError || isLoading) {
     return (
-      <FlatList
-        data={data?.sources}
-        renderItem={({ item }) => <Text>{item.name}</Text>}
-      />
+      <View style={{ flex: 1 }}>
+        {isLoading ? <ActivityIndicator /> : <Text>SOMETHING WENT WRONG</Text>}
+      </View>
     );
-  };
+  }
+
   return (
     <View style={{ flex: 1 }}>
       <Searchbar placeholder="Search" onChangeText={setQuery} value={query} />
@@ -76,11 +75,9 @@ function NewsFeed() {
             {item}
           </Chip>
         ))}
+        <Chip onPress={() => setSelectedCategory(undefined)}>CLEAR</Chip>
       </View>
-      <Text>{`code: ${data?.status}, result:${data?.sources.length}`}</Text>
-      {isLoading && renderLoading()}
-      {isError && renderError()}
-      {data != undefined && renderData()}
+      <Result {...{ query, sources: data }} />
     </View>
   );
 }

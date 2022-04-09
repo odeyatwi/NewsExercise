@@ -5,7 +5,7 @@ import { Text } from 'react-native-paper';
 
 import { Routes } from '../@types/navigation';
 
-import NewsFeed from '../screens/news-feed';
+import NewsFeed from '../screens/news-feed/news-feed';
 
 const Stack = createNativeStackNavigator();
 
