@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { FlatList, View, Image, StyleSheet } from 'react-native';
 import {
   ActivityIndicator,
@@ -9,13 +9,46 @@ import {
   useTheme,
 } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
-import { useQuery } from 'react-query';
+import { useMutation, useQuery, useQueryClient } from 'react-query';
+import produce from 'immer';
 
 import { NewsResponse } from '~/@types/response';
+import { NewsItems } from '~/@types/uiData';
 
 import { truncate } from '../../utils';
 import getFetcher from '../../network';
 import { RootNavigationProps, Routes } from '../../@types/navigation';
+
+const PAGE_SIZE = 100;
+
+async function fetch({
+  query,
+  page,
+  sources,
+}: {
+  query: string;
+  page: number;
+  sources?: string;
+}) {
+  let url = `everything?q=${query}&page=${page}`;
+  if (sources != undefined) {
+    url += `&sources=${sources}`;
+  }
+  const result = (await getFetcher().get<NewsResponse>(url)).data;
+  return {
+    total: result.totalResults,
+    result: result.articles?.map<ItemProps>(
+      ({ title, description, content, publishedAt, urlToImage, author }) => ({
+        title,
+        author,
+        description,
+        content,
+        publishDate: new Date(publishedAt).toDateString(),
+        image: urlToImage,
+      })
+    ),
+  };
+}
 
 interface ItemProps {
   title: string;
@@ -62,31 +95,48 @@ interface IProps {
 
 function Result({ query, sources }: IProps) {
   const theme = useTheme();
+  const page = useRef(1);
+  const client = useQueryClient();
+  const [isRenderMore, setIsRenderMore] = useState(false);
   const key = ['News', query];
   if (sources != undefined) {
     key.push(sources);
   }
   const { data, isLoading, isError } = useQuery(
     key,
-    async () => {
-      let url = `everything?q=${query}`;
-      if (sources != undefined) {
-        url += `&sources=${sources}`;
-      }
-      const result = (await getFetcher().get<NewsResponse>(url)).data;
-      return result.articles?.map<ItemProps>(
-        ({ title, description, content, publishedAt, urlToImage, author }) => ({
-          title,
-          author,
-          description,
-          content,
-          publishDate: new Date(publishedAt).toDateString(),
-          image: urlToImage,
-        })
-      );
-    },
+    async () => fetch({ query, page: page.current, sources }),
     { enabled: query != '' || sources != undefined }
   );
+
+  const { mutate } = useMutation(fetch);
+
+  const loadMore = () => {
+    if ((data?.total || 0) > page.current * PAGE_SIZE) {
+      page.current = page.current + 1;
+      setIsRenderMore(true);
+      mutate(
+        { page: page.current, query, sources },
+        {
+          onSuccess: (result) => {
+            setIsRenderMore(false);
+            const cached = client.getQueryData<{
+              total: Number;
+              result: NewsItems;
+            }>(key);
+            if (cached) {
+              const update = produce(cached, (draft) => {
+                draft.result.push(...result.result);
+              });
+              client.setQueryData(key, update);
+            }
+          },
+          onError: () => {
+            setIsRenderMore(false);
+          },
+        }
+      );
+    }
+  };
 
   if (isError || isLoading || (query === '' && sources == undefined)) {
     return (
@@ -103,7 +153,15 @@ function Result({ query, sources }: IProps) {
       </View>
     );
   }
-  return <FlatList data={data} renderItem={({ item }) => <Item {...item} />} />;
+  return (
+    <FlatList
+      data={data?.result}
+      renderItem={({ item }) => <Item {...item} />}
+      onEndReached={loadMore}
+      onEndReachedThreshold={0.3}
+      ListFooterComponent={isRenderMore ? <ActivityIndicator /> : null}
+    />
+  );
 }
 
 export default Result;

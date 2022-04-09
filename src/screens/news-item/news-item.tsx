@@ -1,14 +1,7 @@
-import { useNavigation, useRoute } from '@react-navigation/native';
 import React from 'react';
-import { ImageBackground, Image, StyleSheet, View } from 'react-native';
-import {
-  Appbar,
-  Headline,
-  Subheading,
-  Text,
-  Title,
-  useTheme,
-} from 'react-native-paper';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { Image, StyleSheet, View } from 'react-native';
+import { Appbar, Subheading, Text, Title } from 'react-native-paper';
 
 import {
   RootNavigationProps,
@@ -30,7 +23,6 @@ function NewsItem() {
     useRoute<RootRouteProps<Routes.NEWS_ITEM>>().params;
   const navigation = useNavigation<RootNavigationProps>();
 
-  const theme = useTheme();
   return (
     <View style={styles.fullScreen}>
       <Appbar.Header>
